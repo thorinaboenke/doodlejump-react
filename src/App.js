@@ -74,46 +74,52 @@ function App() {
     setIsGameOver(true);
   }
 
-  const fall = useCallback((doodlerToFall) => {
-    let newLeft = doodlerToFall.left;
-    if (direction === 'left' && doodlerToFall.left >= 0) {
-      newLeft = doodlerToFall.left - 5;
-    }
-    if (direction === 'right' && doodlerToFall.left <= 340) {
-      newLeft = doodlerToFall.left + 5;
-    }
-    if (direction === 'none') {
-      newLeft = doodlerToFall.left;
-    }
-    setDoodler({
-      ...doodlerToFall,
-      bottom: doodlerToFall.bottom - 5,
-      left: newLeft,
-    });
-    if (doodlerToFall.bottom <= 0) {
-      gameOver();
-    }
-  }, []);
-  const jump = useCallback((doodlerToJump) => {
-    let newLeft = doodlerToJump.left;
-    if (direction === 'left' && doodlerToJump.left >= 0) {
-      newLeft = doodlerToJump.left - 5;
-    }
-    if (direction === 'right' && doodlerToJump.left <= 340) {
-      newLeft = doodlerToJump.left + 5;
-    }
-    if (direction === 'none') {
-      newLeft = doodlerToJump.left;
-    }
-    setDoodler({
-      ...doodlerToJump,
-      bottom: doodlerToJump.bottom + 20,
-      left: newLeft,
-    });
-    if (doodlerToJump.bottom > doodlerToJump.startPoint + 200) {
-      setDoodler({ ...doodlerToJump, isJumping: false });
-    }
-  }, []);
+  const fall = useCallback(
+    (doodlerToFall) => {
+      let newLeft = doodlerToFall.left;
+      if (direction === 'left' && doodlerToFall.left >= 0) {
+        newLeft = doodlerToFall.left - 5;
+      }
+      if (direction === 'right' && doodlerToFall.left <= 340) {
+        newLeft = doodlerToFall.left + 5;
+      }
+      if (direction === 'none') {
+        newLeft = doodlerToFall.left;
+      }
+      setDoodler({
+        ...doodlerToFall,
+        bottom: doodlerToFall.bottom - 5,
+        left: newLeft,
+      });
+      if (doodlerToFall.bottom <= 0) {
+        gameOver();
+      }
+    },
+    [direction],
+  );
+  const jump = useCallback(
+    (doodlerToJump) => {
+      let newLeft = doodlerToJump.left;
+      if (direction === 'left' && doodlerToJump.left >= 0) {
+        newLeft = doodlerToJump.left - 5;
+      }
+      if (direction === 'right' && doodlerToJump.left <= 340) {
+        newLeft = doodlerToJump.left + 5;
+      }
+      if (direction === 'none') {
+        newLeft = doodlerToJump.left;
+      }
+      setDoodler({
+        ...doodlerToJump,
+        bottom: doodlerToJump.bottom + 20,
+        left: newLeft,
+      });
+      if (doodlerToJump.bottom > doodlerToJump.startPoint + 200) {
+        setDoodler({ ...doodlerToJump, isJumping: false });
+      }
+    },
+    [direction],
+  );
 
   // if the doodler hits a wall, reverse direction
   function checkCollision(doodlerforCollisionCheck) {
