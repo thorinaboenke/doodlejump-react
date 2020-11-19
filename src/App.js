@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './App.css';
 
 function Platforms(props) {
@@ -40,7 +40,7 @@ function App() {
   }
   // if the doodler is higher than 200px move each platform down by 4px
   // if a platform reaches the bottom, remove it from the array (shift) and add a new platform (push)
-  function movePlatforms(platformsToMove, doodlerReference) {
+  const movePlatforms = useCallback((platformsToMove, doodlerReference) => {
     if (doodlerReference.bottom > 200) {
       if (platformsToMove[0].bottom < 10) {
         platformsToMove.shift();
@@ -55,7 +55,7 @@ function App() {
 
       return platformsToMove;
     }
-  }
+  }, []);
   // function for movement
   function moveStraight() {
     setDoodler({ ...doodler, direction: 'none' });
@@ -168,7 +168,7 @@ function App() {
   }
 
   function createDoodler(doodlerBottom, doodlerLeft) {
-    const doodlerLeftSpace = platforms[0].left; // ensures that the doodler starts directly above the lowest platform
+    //const doodlerLeftSpace = platforms[0].left; // ensures that the doodler starts directly above the lowest platform
 
     return {
       bottom: doodlerBottom,
