@@ -25,15 +25,15 @@ function Doodler(props) {
 }
 
 function App() {
-  const [isGameOver, setIsGameOver] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(true);
   const [platforms, setPlatforms] = useState([{ bottom: 50, left: 50 }]);
   const [doodler, setDoodler] = useState({});
   const [score, setScore] = useState(0);
   const [displayScore, setDisplayScore] = useState(0);
-
+  const [direction, setDirection] = useState('none');
   const platformCount = 5;
-  let startPoint = 150;
-  let doodlerBottomSpace = startPoint;
+  const startPoint = 150;
+  const doodlerBottomSpace = startPoint;
 
   function makeOneNewPlatform(bottom) {
     const left = Math.random() * 315;
@@ -55,26 +55,69 @@ function App() {
       return platforms;
     }
   }
+  // function for movement
+
+  function moveStraight() {
+    setDoodler({ ...doodler, direction: 'none' });
+  }
+  function moveLeft() {
+    setDoodler({ ...doodler, direction: 'left' });
+  }
+  function moveRight() {
+    setDoodler({ ...doodler, direction: 'right' });
+  }
+
   function gameOver() {
     setIsGameOver(true);
     setDisplayScore(true);
   }
   function fall(doodler) {
-    setDoodler({ ...doodler, bottom: doodler.bottom - 5 });
+    let newLeft = doodler.left;
+    if (direction === 'left' && doodler.left >= 0) {
+      newLeft = doodler.left - 5;
+    }
+    if (direction === 'right' && doodler.left <= 340) {
+      newLeft = doodler.left + 5;
+    }
+    if (direction === 'none') {
+      newLeft = doodler.left;
+    }
+    setDoodler({ ...doodler, bottom: doodler.bottom - 5, left: newLeft });
     if (doodler.bottom <= 0) {
       gameOver();
     }
   }
   function jump(doodler) {
-    setDoodler({ ...doodler, bottom: doodler.bottom + 20 });
+    let newLeft = doodler.left;
+    if (direction === 'left' && doodler.left >= 0) {
+      newLeft = doodler.left - 5;
+    }
+    if (direction === 'right' && doodler.left <= 340) {
+      newLeft = doodler.left + 5;
+    }
+    if (direction === 'none') {
+      newLeft = doodler.left;
+    }
+    setDoodler({ ...doodler, bottom: doodler.bottom + 20, left: newLeft });
     if (doodler.bottom > doodler.startPoint + 200) {
       setDoodler({ ...doodler, isJumping: false });
     }
   }
 
+  // if the doodler hits a wall, reverse direction
+  function checkCollision(doodler) {
+    if (doodler.left <= 0) {
+      setDirection('right');
+    }
+    if (doodler.left >= 340) {
+      setDirection('left');
+    }
+  }
+  // as long as the game is running, check for collision, move the platforms, move the doodler (jump or fall), check if the doodler has landed on a platform
   useEffect(() => {
     if (!isGameOver) {
       const Interval = setInterval(() => {
+        checkCollision(doodler);
         movePlatforms(platforms, doodler);
         if (doodler.isJumping) {
           jump(doodler);
@@ -130,18 +173,69 @@ function App() {
 
   function start() {
     const [platforms, doodlerLeft] = createPlatforms();
+    setIsGameOver(false);
+    setScore(0);
     setPlatforms(platforms);
     setDoodler(createDoodler(doodlerBottomSpace, doodlerLeft));
-    setIsGameOver(false);
   }
+  const handleKeyDown = (event) => {
+    if (event.key === 'Enter' && isGameOver) {
+      start();
+    }
+    console.log('A key was pressed', event.key);
+    if (event.key === 'ArrowLeft') {
+      setDirection('left');
+      moveLeft();
+    }
+    if (event.key === 'ArrowRight') {
+      setDirection('right');
+      moveRight();
+    }
+    if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+      setDirection('none');
+      moveStraight();
+    }
+  };
+  //listen to key events
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+
+    // cleanup this component
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  });
 
   return (
-    <div className="grid">
-      <Doodler doodler={doodler} />
-      <Platforms platforms={platforms} />
-      <button onClick={() => start()}>Start Game</button>
-      <button onClick={() => movePlatforms(platforms, doodler)}>eMov</button>
-    </div>
+    <>
+      <div className="grid">
+        {!isGameOver && (
+          <>
+            <div className="score">{score}</div>
+            <Doodler doodler={doodler} />
+            <Platforms platforms={platforms} />{' '}
+          </>
+        )}
+        {isGameOver && (
+          <>
+            <div className="score">{score}</div>
+            <div className="instructions">
+              {' '}
+              DoodleJump <br /> Press Enter to start and navigate with the arrow
+              keys
+            </div>
+          </>
+        )}
+      </div>
+      <div className="flex">
+        <a href="https://github.com/thorinaboenke/doodlejump-react">
+          <img className="github" src="/github.svg" alt="github" />
+        </a>
+        <a href="https://twitter.com/ThorinaBoenke">
+          <img className="twitter" src="/twitter.svg" alt="twitter" />
+        </a>
+      </div>
+    </>
   );
 }
 
