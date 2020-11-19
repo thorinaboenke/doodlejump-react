@@ -40,22 +40,25 @@ function App() {
   }
   // if the doodler is higher than 200px move each platform down by 4px
   // if a platform reaches the bottom, remove it from the array (shift) and add a new platform (push)
-  const movePlatforms = useCallback((platformsToMove, doodlerReference) => {
-    if (doodlerReference.bottom > 200) {
-      if (platformsToMove[0].bottom < 10) {
-        platformsToMove.shift();
-        setScore(score + 1);
-        platformsToMove.push(makeOneNewPlatform(600));
-      }
-      setPlatforms(
-        platformsToMove.map((platform) => {
-          return { ...platform, bottom: platform.bottom - 4 };
-        }),
-      );
+  const movePlatforms = useCallback(
+    (platformsToMove, doodlerReference) => {
+      if (doodlerReference.bottom > 200) {
+        if (platformsToMove[0].bottom < 10) {
+          platformsToMove.shift();
+          setScore(score + 1);
+          platformsToMove.push(makeOneNewPlatform(600));
+        }
+        setPlatforms(
+          platformsToMove.map((platform) => {
+            return { ...platform, bottom: platform.bottom - 4 };
+          }),
+        );
 
-      return platformsToMove;
-    }
-  }, []);
+        return platformsToMove;
+      }
+    },
+    [score],
+  );
   // function for movement
   function moveStraight() {
     setDoodler({ ...doodler, direction: 'none' });
@@ -71,7 +74,7 @@ function App() {
     setIsGameOver(true);
   }
 
-  function fall(doodlerToFall) {
+  const fall = useCallback((doodlerToFall) => {
     let newLeft = doodlerToFall.left;
     if (direction === 'left' && doodlerToFall.left >= 0) {
       newLeft = doodlerToFall.left - 5;
@@ -90,8 +93,8 @@ function App() {
     if (doodlerToFall.bottom <= 0) {
       gameOver();
     }
-  }
-  function jump(doodlerToJump) {
+  }, []);
+  const jump = userCallback((doodlerToJump) => {
     let newLeft = doodlerToJump.left;
     if (direction === 'left' && doodlerToJump.left >= 0) {
       newLeft = doodlerToJump.left - 5;
@@ -110,7 +113,7 @@ function App() {
     if (doodlerToJump.bottom > doodlerToJump.startPoint + 200) {
       setDoodler({ ...doodlerToJump, isJumping: false });
     }
-  }
+  }, []);
 
   // if the doodler hits a wall, reverse direction
   function checkCollision(doodlerforCollisionCheck) {
