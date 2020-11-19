@@ -69,7 +69,6 @@ function App() {
 
   function gameOver() {
     setIsGameOver(true);
-    setDisplayScore(true);
   }
 
   function fall(doodlerToFall) {
