@@ -8,7 +8,7 @@ function Platforms(props) {
         key={Math.random()}
         className="platform"
         style={{ left: `${platform.left}px`, bottom: `${platform.bottom}px` }}
-      ></div>
+      />
     );
   });
 }
@@ -20,16 +20,15 @@ function Doodler(props) {
         left: `${props.doodler.left}px`,
         bottom: `${props.doodler.bottom}px`,
       }}
-    ></div>
+    />
   );
 }
 
 function App() {
   const [isGameOver, setIsGameOver] = useState(true);
-  const [platforms, setPlatforms] = useState([{ bottom: 50, left: 50 }]);
+  const [platforms, setPlatforms] = useState([]);
   const [doodler, setDoodler] = useState({});
   const [score, setScore] = useState(0);
-  const [displayScore, setDisplayScore] = useState(0);
   const [direction, setDirection] = useState('none');
   const platformCount = 5;
   const startPoint = 150;
@@ -39,24 +38,25 @@ function App() {
     const left = Math.random() * 315;
     return { bottom: bottom, left: left };
   }
-  function movePlatforms(platforms, doodler) {
-    if (doodler.bottom > 200) {
-      if (platforms[0].bottom < 10) {
-        platforms.shift();
+  // if the doodler is higher than 200px move each platform down by 4px
+  // if a platform reaches the bottom, remove it from the array (shift) and add a new platform (push)
+  function movePlatforms(platformsToMove, doodlerReference) {
+    if (doodlerReference.bottom > 200) {
+      if (platformsToMove[0].bottom < 10) {
+        platformsToMove.shift();
         setScore(score + 1);
-        platforms.push(makeOneNewPlatform(600));
+        platformsToMove.push(makeOneNewPlatform(600));
       }
       setPlatforms(
-        platforms.map((platform) => {
+        platformsToMove.map((platform) => {
           return { ...platform, bottom: platform.bottom - 4 };
         }),
       );
 
-      return platforms;
+      return platformsToMove;
     }
   }
   // function for movement
-
   function moveStraight() {
     setDoodler({ ...doodler, direction: 'none' });
   }
@@ -71,52 +71,61 @@ function App() {
     setIsGameOver(true);
     setDisplayScore(true);
   }
-  function fall(doodler) {
-    let newLeft = doodler.left;
-    if (direction === 'left' && doodler.left >= 0) {
-      newLeft = doodler.left - 5;
+
+  function fall(doodlerToFall) {
+    let newLeft = doodlerToFall.left;
+    if (direction === 'left' && doodlerToFall.left >= 0) {
+      newLeft = doodlerToFall.left - 5;
     }
-    if (direction === 'right' && doodler.left <= 340) {
-      newLeft = doodler.left + 5;
+    if (direction === 'right' && doodlerToFall.left <= 340) {
+      newLeft = doodlerToFall.left + 5;
     }
     if (direction === 'none') {
-      newLeft = doodler.left;
+      newLeft = doodlerToFall.left;
     }
-    setDoodler({ ...doodler, bottom: doodler.bottom - 5, left: newLeft });
-    if (doodler.bottom <= 0) {
+    setDoodler({
+      ...doodlerToFall,
+      bottom: doodlerToFall.bottom - 5,
+      left: newLeft,
+    });
+    if (doodlerToFall.bottom <= 0) {
       gameOver();
     }
   }
-  function jump(doodler) {
-    let newLeft = doodler.left;
-    if (direction === 'left' && doodler.left >= 0) {
-      newLeft = doodler.left - 5;
+  function jump(doodlerToJump) {
+    let newLeft = doodlerToJump.left;
+    if (direction === 'left' && doodlerToJump.left >= 0) {
+      newLeft = doodlerToJump.left - 5;
     }
-    if (direction === 'right' && doodler.left <= 340) {
-      newLeft = doodler.left + 5;
+    if (direction === 'right' && doodlerToJump.left <= 340) {
+      newLeft = doodlerToJump.left + 5;
     }
     if (direction === 'none') {
-      newLeft = doodler.left;
+      newLeft = doodlerToJump.left;
     }
-    setDoodler({ ...doodler, bottom: doodler.bottom + 20, left: newLeft });
-    if (doodler.bottom > doodler.startPoint + 200) {
-      setDoodler({ ...doodler, isJumping: false });
+    setDoodler({
+      ...doodlerToJump,
+      bottom: doodlerToJump.bottom + 20,
+      left: newLeft,
+    });
+    if (doodlerToJump.bottom > doodlerToJump.startPoint + 200) {
+      setDoodler({ ...doodlerToJump, isJumping: false });
     }
   }
 
   // if the doodler hits a wall, reverse direction
-  function checkCollision(doodler) {
-    if (doodler.left <= 0) {
+  function checkCollision(doodlerforCollisionCheck) {
+    if (doodlerforCollisionCheck.left <= 0) {
       setDirection('right');
     }
-    if (doodler.left >= 340) {
+    if (doodlerforCollisionCheck.left >= 340) {
       setDirection('left');
     }
   }
-  // as long as the game is running, check for collision, move the platforms, move the doodler (jump or fall), check if the doodler has landed on a platform
+  // as long as the game is running, check for collision with walls, move the platforms, move the doodler (jump or fall), check if the doodler has landed on a platform (triggers jump)
   useEffect(() => {
     if (!isGameOver) {
-      const Interval = setInterval(() => {
+      const interval = setInterval(() => {
         checkCollision(doodler);
         movePlatforms(platforms, doodler);
         if (doodler.isJumping) {
@@ -142,10 +151,11 @@ function App() {
           }
         });
       }, 30);
-      return () => clearInterval(Interval);
+      return () => clearInterval(interval);
     }
-  }, [platforms, doodler]);
+  }, [platforms, doodler, fall, isGameOver, jump, movePlatforms]);
 
+  // create 5 evenly vertically spaced platform with a random horizontal placement
   function createPlatforms() {
     const plat = [];
     for (let i = 0; i < platformCount; i++) {
@@ -158,12 +168,11 @@ function App() {
     return [plat, plat[0].left];
   }
 
-  function createDoodler(doodlerBottomSpace, doodlerLeft) {
-    const doodlerLeftSpace = platforms[0].left;
-    console.log(platforms[0].left); // ensures that the doodler starts directly above the lowest platform
+  function createDoodler(doodlerBottom, doodlerLeft) {
+    const doodlerLeftSpace = platforms[0].left; // ensures that the doodler starts directly above the lowest platform
 
     return {
-      bottom: doodlerBottomSpace,
+      bottom: doodlerBottom,
       left: doodlerLeft,
       isJumping: true,
       direction: 'none',
@@ -172,10 +181,10 @@ function App() {
   }
 
   function start() {
-    const [platforms, doodlerLeft] = createPlatforms();
+    const [newPlatforms, doodlerLeft] = createPlatforms();
     setIsGameOver(false);
     setScore(0);
-    setPlatforms(platforms);
+    setPlatforms(newPlatforms);
     setDoodler(createDoodler(doodlerBottomSpace, doodlerLeft));
   }
   const handleKeyDown = (event) => {
@@ -200,12 +209,12 @@ function App() {
   useEffect(() => {
     window.addEventListener('keydown', handleKeyDown);
 
-    // cleanup this component
+    // cleanup
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
   });
-
+  // conditionally render the components depending on wether the game is running
   return (
     <>
       <div className="grid">
@@ -222,7 +231,7 @@ function App() {
             <div className="instructions">
               {' '}
               DoodleJump <br /> Press Enter to start and navigate with the arrow
-              keys
+              keys. Don't hit the floor!
             </div>
           </>
         )}
