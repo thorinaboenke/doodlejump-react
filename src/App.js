@@ -94,7 +94,7 @@ function App() {
       gameOver();
     }
   }, []);
-  const jump = userCallback((doodlerToJump) => {
+  const jump = useCallback((doodlerToJump) => {
     let newLeft = doodlerToJump.left;
     if (direction === 'left' && doodlerToJump.left >= 0) {
       newLeft = doodlerToJump.left - 5;
